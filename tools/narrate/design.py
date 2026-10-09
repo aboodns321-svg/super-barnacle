@@ -35,6 +35,24 @@ def card(im,box,label,text,badge=None,size=60):
     y=(y0+y1)//2-th//2
     if label: d.text((right,y),label,font=fl,fill=TEAL,anchor="ra",direction="rtl"); y+=int(size*1.2)
     for ln in lines: d.text((right,y),ln,font=f,fill=DARK,anchor="ra",direction="rtl"); y+=lh
+LOGO=Image.open(f"{S}/clean/c_02.png").convert("RGB").crop((340,52,542,168))
+def mockup(im):
+    sh=Image.new("RGBA",im.size,(0,0,0,0)); sd=ImageDraw.Draw(sh)
+    sd.rounded_rectangle((170,940,910,1400),40,fill=(15,40,60,90)); sd.rounded_rectangle((720,1290,930,1700),48,fill=(15,40,60,90))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(26)))
+    d=ImageDraw.Draw(im)
+    # laptop
+    d.rounded_rectangle((190,900,890,1330),34,fill=(38,48,62)); d.rounded_rectangle((214,924,866,1306),14,fill=(255,255,255))
+    d.rectangle((214,924,866,968),fill=(14,124,134)); 
+    for i,cx in enumerate((236,262,288)): d.ellipse((cx-8,938,cx+8,954),fill=(255,255,255,200))
+    lg=LOGO.resize((430,int(430*LOGO.height/LOGO.width)),Image.LANCZOS); im.paste(lg,(540-215,1000))
+    d.rounded_rectangle((300,1230,560,1262),16,fill=(225,242,243)); d.rounded_rectangle((300,1270,480,1290),10,fill=(235,240,244))
+    d.polygon([(130,1330),(950,1330),(920,1374),(160,1374)],fill=(205,212,220)); d.rounded_rectangle((440,1334,640,1352),9,fill=(170,178,188))
+    # phone
+    d.rounded_rectangle((730,1290,920,1690),44,fill=(38,48,62)); d.rounded_rectangle((744,1304,906,1676),32,fill=(255,255,255))
+    d.rounded_rectangle((790,1316,860,1328),6,fill=(38,48,62))
+    lp=LOGO.resize((140,int(140*LOGO.height/LOGO.width)),Image.LANCZOS); im.paste(lp,(755,1400))
+    d.rounded_rectangle((770,1560,880,1600),20,fill=(14,124,134)); d.rounded_rectangle((770,1612,880,1630),9,fill=(225,235,240))
 def render(n):
     img=cv2.imread(f"{S}/clean/c_{n:02d}.png")
     big=cv2.resize(img,(1080,1920),interpolation=cv2.INTER_LANCZOS4)
@@ -44,21 +62,18 @@ def render(n):
     cy=int(CUT[n]*K); m=Image.new("L",im.size,0); ImageDraw.Draw(m).rectangle((0,cy,1080,1920),fill=255)
     im.paste(Image.new("RGBA",im.size,(255,255,255,255)),(0,0),m.filter(ImageFilter.GaussianBlur(3)))
     d=ImageDraw.Draw(im)
-    # banner: red -> brand teal
-    d.rounded_rectangle((int(86*K),int(194*K),int(514*K),int(308*K)),36,fill=TEAL)
-    fb=font(54)
-    d.text((540,int(226*K)),"طريقة التفعيل منصة مدرستي",font=fb,fill="white",anchor="mm",direction="rtl")
-    d.text((540,int(280*K)),"بالتحديث الجديد",font=fb,fill=(190,240,235),anchor="mm",direction="rtl")
+    bd=ImageDraw.Draw(im); bd.rectangle((0,int(158*K),int(300*K),int(309*K)),fill=(255,255,255,255)); bd.rectangle((0,int(172*K),1080,int(309*K)),fill=(255,255,255,255))
+    if n==1: mockup(im)
     top=max(cy+50,1330) if n in CAP else 0
     if n in CAP:
         label=f"الخطوة {ORD[n-1]}"; f=font(58); dd=ImageDraw.Draw(im)
         nl=len(wrap(dd,CAP[n],f,960-96-140-36)); h=int(58*1.55)*nl+int(58*1.2)+110; h=max(h,300)
         top=max(min(top,1870-h),cy+30); card(im,(60,top,1020,top+h),label,CAP[n],badge="".join(AR[int(c)] for c in str(n-1)),size=58)
-    elif n==1: card(im,(60,720,1020,1180),None,"طريقة دخول ولي الأمر إلى منصة مدرستي وتفعيلها",size=76)
+    elif n==1: card(im,(60,360,1020,780),None,"طريقة دخول ولي الأمر إلى منصة مدرستي وتفعيلها",size=76)
     elif n==12: card(im,(60,640,1020,1280),"دخول ولي الأمر","باستخدام اسم المستخدم المرسل عبر توكلنا، ثم إدخال كلمة المرور الخاصة بالحساب",size=62)
     elif n==13: card(im,(60,600,1020,1380),"ملاحظة","من لم يفهم الخطوات يزورنا في المدرسة، وعلى الرحب والسعة. والأهم أن يحضر الجوال الذي تصل إليه الرسائل النصية.",size=58)
     elif n==14:
         card(im,(60,640,1020,900),"مديرة المدرسة","فائزة البدراني",size=80)
-        card(im,(60,980,1020,1240),"مسؤولة منصة مدرستي","هبه خشيم",size=80)
+        card(im,(60,980,1020,1240),"مسؤولة منصة مدرستي","هبة خشيم",size=80)
     im.convert("RGB").save(f"{S}/design/d_{n:02d}.png")
 for n in range(1,15): render(n)
