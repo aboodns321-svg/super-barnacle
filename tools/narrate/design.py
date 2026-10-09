@@ -57,7 +57,17 @@ def render(n):
     img=cv2.imread(f"{S}/clean/c_{n:02d}.png")
     big=cv2.resize(img,(1080,1920),interpolation=cv2.INTER_LANCZOS4)
     bl=cv2.GaussianBlur(big,(0,0),1.2); big=cv2.addWeighted(big,1.5,bl,-0.5,0)
+    if n==1:
+        mk=np.zeros(big.shape[:2],np.uint8); mk[36:240,630:1060]=255; mk[164:218,296:610]=255
+        big=cv2.inpaint(big,mk,12,cv2.INPAINT_TELEA)
     im=Image.fromarray(cv2.cvtColor(big,cv2.COLOR_BGR2RGB)).convert("RGBA")
+    if n==1:
+        hd=ImageDraw.Draw(im); fh=font(44)
+        hd.text((458,176),"الابتدائية",font=fh,fill=DARK,anchor="mt",direction="rtl")
+        hd.text((458,226),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
+        lg=LOGO.resize((400,int(400*LOGO.height/LOGO.width)),Image.LANCZOS).convert("RGBA")
+        mm=Image.new("L",lg.size,0); ImageDraw.Draw(mm).rectangle((14,14,lg.width-14,lg.height-14),fill=255)
+        im.paste(lg,(650,50),mm.filter(ImageFilter.GaussianBlur(9)))
     # laptop removal
     cy=int(CUT[n]*K); m=Image.new("L",im.size,0); ImageDraw.Draw(m).rectangle((0,cy,1080,1920),fill=255)
     im.paste(Image.new("RGBA",im.size,(255,255,255,255)),(0,0),m.filter(ImageFilter.GaussianBlur(3)))
