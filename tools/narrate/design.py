@@ -1,0 +1,64 @@
+import cv2, numpy as np
+from PIL import Image, ImageDraw, ImageFont, ImageFilter
+S="/tmp/claude-0/-home-user-super-barnacle/35d16e81-df7f-5220-b9cf-59e4fb6d0b72/scratchpad"
+F=f"{S}/fonts2/Cairo_wght_700.ttf"
+TEAL=(14,124,134); DARK=(30,41,59); K=1.875
+CUT={1:650,2:790,3:703,4:708,5:708,6:750,7:740,8:645,9:680,10:722,11:730,12:650,13:650,14:650}
+AR="٠١٢٣٤٥٦٧٨٩"; ORD=["","الأولى","الثانية","الثالثة","الرابعة","الخامسة","السادسة","السابعة","الثامنة","التاسعة","العاشرة"]
+CAP={2:"ندخل من أي متصفح",3:"نبحث عن منصة مدرستي ونختار الخيار الثاني",4:"نضغط على تسجيل الدخول",
+5:"نختار الدخول بحساب مايكروسوفت",6:"ندخل البريد الإلكتروني وكلمة المرور",7:"بعدها يتم تسجيل الدخول إلى منصة مدرستي",
+8:"إذا كان حساب ابنتك محفوظًا نختاره، وإذا لم يكن موجودًا نكتبه في خانة تسجيل الدخول",
+9:"نكتب كلمة المرور مع الانتباه للحروف الكبيرة والصغيرة، والصفر دائمًا رقم صفر",
+10:"نضغط على أيقونة «نعم»",11:"تفتح الصفحة الخاصة بالطالبة"}
+def font(sz): 
+    f=ImageFont.truetype(F,sz); return f
+def wrap(d,text,f,w):
+    words=text.split(); lines=[]; cur=""
+    for wd in words:
+        t=(cur+" "+wd).strip()
+        if d.textlength(t,font=f,direction="rtl",features=["-liga"] if False else None)<=w: cur=t
+        else: lines.append(cur); cur=wd
+    lines.append(cur); return lines
+def card(im,box,label,text,badge=None,size=60):
+    x0,y0,x1,y1=box
+    sh=Image.new("RGBA",im.size,(0,0,0,0)); ImageDraw.Draw(sh).rounded_rectangle((x0,y0+12,x1,y1+12),44,fill=(15,40,60,70))
+    im.alpha_composite(sh.filter(ImageFilter.GaussianBlur(22)))
+    d=ImageDraw.Draw(im); d.rounded_rectangle(box,44,fill=(255,255,255,255),outline=(14,124,134,255),width=5)
+    right=x1-48
+    if badge:
+        cx,cy=x1-48-70,(y0+y1)//2
+        d.ellipse((cx-70,cy-70,cx+70,cy+70),fill=TEAL); f=font(84 if len(badge)==1 else 62)
+        d.text((cx,cy+6),badge,font=f,fill="white",anchor="mm",direction="rtl")
+        right=cx-70-36
+    f=font(size); lines=wrap(d,text,f,right-(x0+48)); fl=font(int(size*0.68))
+    lh=int(size*1.55); th=lh*len(lines)+(int(size*1.2) if label else 0)
+    y=(y0+y1)//2-th//2
+    if label: d.text((right,y),label,font=fl,fill=TEAL,anchor="ra",direction="rtl"); y+=int(size*1.2)
+    for ln in lines: d.text((right,y),ln,font=f,fill=DARK,anchor="ra",direction="rtl"); y+=lh
+def render(n):
+    img=cv2.imread(f"{S}/clean/c_{n:02d}.png")
+    big=cv2.resize(img,(1080,1920),interpolation=cv2.INTER_LANCZOS4)
+    bl=cv2.GaussianBlur(big,(0,0),1.2); big=cv2.addWeighted(big,1.5,bl,-0.5,0)
+    im=Image.fromarray(cv2.cvtColor(big,cv2.COLOR_BGR2RGB)).convert("RGBA")
+    # laptop removal
+    cy=int(CUT[n]*K); m=Image.new("L",im.size,0); ImageDraw.Draw(m).rectangle((0,cy,1080,1920),fill=255)
+    im.paste(Image.new("RGBA",im.size,(255,255,255,255)),(0,0),m.filter(ImageFilter.GaussianBlur(3)))
+    d=ImageDraw.Draw(im)
+    # banner: red -> brand teal
+    d.rounded_rectangle((int(86*K),int(194*K),int(514*K),int(308*K)),36,fill=TEAL)
+    fb=font(54)
+    d.text((540,int(226*K)),"طريقة التفعيل منصة مدرستي",font=fb,fill="white",anchor="mm",direction="rtl")
+    d.text((540,int(280*K)),"بالتحديث الجديد",font=fb,fill=(190,240,235),anchor="mm",direction="rtl")
+    top=max(cy+50,1330) if n in CAP else 0
+    if n in CAP:
+        label=f"الخطوة {ORD[n-1]}"; f=font(58); dd=ImageDraw.Draw(im)
+        nl=len(wrap(dd,CAP[n],f,960-96-140-36)); h=int(58*1.55)*nl+int(58*1.2)+110; h=max(h,300)
+        top=max(min(top,1870-h),cy+30); card(im,(60,top,1020,top+h),label,CAP[n],badge="".join(AR[int(c)] for c in str(n-1)),size=58)
+    elif n==1: card(im,(60,720,1020,1180),None,"طريقة دخول ولي الأمر إلى منصة مدرستي وتفعيلها",size=76)
+    elif n==12: card(im,(60,640,1020,1280),"دخول ولي الأمر","باستخدام اسم المستخدم المرسل عبر توكلنا، ثم إدخال كلمة المرور الخاصة بالحساب",size=62)
+    elif n==13: card(im,(60,600,1020,1380),"ملاحظة","من لم يفهم الخطوات يزورنا في المدرسة، وعلى الرحب والسعة. والأهم أن يحضر الجوال الذي تصل إليه الرسائل النصية.",size=58)
+    elif n==14:
+        card(im,(60,640,1020,900),"مديرة المدرسة","فائزة البدراني",size=80)
+        card(im,(60,980,1020,1240),"مسؤولة منصة مدرستي","هبه خشيم",size=80)
+    im.convert("RGB").save(f"{S}/design/d_{n:02d}.png")
+for n in range(1,15): render(n)
