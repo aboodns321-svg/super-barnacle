@@ -65,13 +65,13 @@ def render(n):
     big=cv2.resize(img,(1080,1920),interpolation=cv2.INTER_LANCZOS4)
     bl=cv2.GaussianBlur(big,(0,0),1.2); big=cv2.addWeighted(big,1.5,bl,-0.5,0)
     if n==1:
-        mk=np.zeros(big.shape[:2],np.uint8); mk[36:240,630:1060]=255; mk[164:218,296:610]=255
+        mk=np.zeros(big.shape[:2],np.uint8); mk[36:240,630:1060]=255; mk[164:218,296:610]=255; mk[40:166,356:560]=255
         big=cv2.inpaint(big,mk,12,cv2.INPAINT_TELEA)
     im=Image.fromarray(cv2.cvtColor(big,cv2.COLOR_BGR2RGB)).convert("RGBA")
     if n==1:
         hd=ImageDraw.Draw(im); fh=font(38)
-        hd.text((458,176),"الابتدائية",font=fh,fill=DARK,anchor="mt",direction="rtl")
-        hd.text((458,222),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
+        hd.text((468,66),"الابتدائية",font=fh,fill=DARK,anchor="mt",direction="rtl")
+        hd.text((468,120),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
         lg=LOGO.resize((400,int(400*LOGO.height/LOGO.width)),Image.LANCZOS).convert("RGBA")
         mm=Image.new("L",lg.size,0); ImageDraw.Draw(mm).rectangle((14,14,lg.width-14,lg.height-14),fill=255)
         im.paste(lg,(650,50),mm.filter(ImageFilter.GaussianBlur(9)))
@@ -82,9 +82,9 @@ def render(n):
     bd=ImageDraw.Draw(im); bd.rectangle((0,int(158*K),int(300*K),int(309*K)),fill=(255,255,255,255)); bd.rectangle((0,int(172*K),1080,int(309*K)),fill=(255,255,255,255))
     if n==1: mockup(im)
     else:
-        im.paste(EMB,(368,45)); hd=ImageDraw.Draw(im); fh=font(38)
-        hd.text((458,176),"الابتدائية",font=fh,fill=DARK,anchor="mt",direction="rtl")
-        hd.text((458,222),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
+        hd=ImageDraw.Draw(im); fh=font(38)
+        hd.text((468,66),"الابتدائية",font=fh,fill=DARK,anchor="mt",direction="rtl")
+        hd.text((468,120),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
     top=max(cy+50,1330) if n in CAP else 0
     if n in CAP:
         label=f"الخطوة {ORD[n-1]}"; f=font(58); dd=ImageDraw.Draw(im)
