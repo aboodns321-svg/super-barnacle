@@ -3,7 +3,7 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 S="/tmp/claude-0/-home-user-super-barnacle/35d16e81-df7f-5220-b9cf-59e4fb6d0b72/scratchpad"
 F=f"{S}/fonts2/Cairo_wght_700.ttf"
 TEAL=(14,124,134); DARK=(30,41,59); K=1.875
-CUT={1:650,2:790,3:703,4:708,5:708,6:750,7:740,8:645,9:680,10:722,11:730,12:650,13:650,14:650}
+CUT={1:650,2:640,3:703,4:708,5:708,6:750,7:740,8:645,9:680,10:722,11:730,12:650,13:650,14:650}
 AR="٠١٢٣٤٥٦٧٨٩"; ORD=["","الأولى","الثانية","الثالثة","الرابعة","الخامسة","السادسة","السابعة","الثامنة","التاسعة","العاشرة"]
 CAP={2:"ندخل من أي متصفح",3:"نبحث عن منصة مدرستي ونختار الخيار الثاني",4:"نضغط على تسجيل الدخول",
 5:"نختار الدخول بحساب مايكروسوفت",6:"ندخل البريد الإلكتروني وكلمة المرور",7:"بعدها يتم تسجيل الدخول إلى منصة مدرستي",
@@ -53,8 +53,15 @@ def mockup(im):
     d.rounded_rectangle((790,1316,860,1328),6,fill=(38,48,62))
     lp=LOGO.resize((140,int(140*LOGO.height/LOGO.width)),Image.LANCZOS); im.paste(lp,(755,1400))
     d.rounded_rectangle((770,1560,880,1600),20,fill=(14,124,134)); d.rounded_rectangle((770,1612,880,1630),9,fill=(225,235,240))
+EMB=Image.open(f"{S}/design/d1_ref.png").convert("RGB").crop((368,45,548,168))
 def render(n):
     img=cv2.imread(f"{S}/clean/c_{n:02d}.png")
+    if n==2:
+        ic=img[590:780].copy(); img[330:790]=255; img[400:590]=ic
+    ARW={4:(-33,-34),5:(0,-115)}
+    if n in ARW:
+        x0,y0,x1,y1=372,620,505,680; dx,dy=ARW[n]; pt=img[y0:y1,x0:x1].copy(); img[y0:y1,x0:x1]=255
+        dst=img[y0+dy:y1+dy,x0+dx:x1+dx]; img[y0+dy:y1+dy,x0+dx:x1+dx]=np.minimum(dst,pt)
     big=cv2.resize(img,(1080,1920),interpolation=cv2.INTER_LANCZOS4)
     bl=cv2.GaussianBlur(big,(0,0),1.2); big=cv2.addWeighted(big,1.5,bl,-0.5,0)
     if n==1:
@@ -62,9 +69,9 @@ def render(n):
         big=cv2.inpaint(big,mk,12,cv2.INPAINT_TELEA)
     im=Image.fromarray(cv2.cvtColor(big,cv2.COLOR_BGR2RGB)).convert("RGBA")
     if n==1:
-        hd=ImageDraw.Draw(im); fh=font(44)
+        hd=ImageDraw.Draw(im); fh=font(38)
         hd.text((458,176),"الابتدائية",font=fh,fill=DARK,anchor="mt",direction="rtl")
-        hd.text((458,226),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
+        hd.text((458,222),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
         lg=LOGO.resize((400,int(400*LOGO.height/LOGO.width)),Image.LANCZOS).convert("RGBA")
         mm=Image.new("L",lg.size,0); ImageDraw.Draw(mm).rectangle((14,14,lg.width-14,lg.height-14),fill=255)
         im.paste(lg,(650,50),mm.filter(ImageFilter.GaussianBlur(9)))
@@ -74,6 +81,10 @@ def render(n):
     d=ImageDraw.Draw(im)
     bd=ImageDraw.Draw(im); bd.rectangle((0,int(158*K),int(300*K),int(309*K)),fill=(255,255,255,255)); bd.rectangle((0,int(172*K),1080,int(309*K)),fill=(255,255,255,255))
     if n==1: mockup(im)
+    else:
+        im.paste(EMB,(368,45)); hd=ImageDraw.Draw(im); fh=font(38)
+        hd.text((458,176),"الابتدائية",font=fh,fill=DARK,anchor="mt",direction="rtl")
+        hd.text((458,222),"التاسعة والأربعون",font=fh,fill=TEAL,anchor="mt",direction="rtl")
     top=max(cy+50,1330) if n in CAP else 0
     if n in CAP:
         label=f"الخطوة {ORD[n-1]}"; f=font(58); dd=ImageDraw.Draw(im)
